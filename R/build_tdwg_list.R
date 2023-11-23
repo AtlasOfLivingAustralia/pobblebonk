@@ -8,7 +8,8 @@
 #' @returns list of tibbles
 #' @importFrom purrr map
 #' @importFrom readr read_csv
-#' @export
+#' @noRd
+#' @keywords Internal
 build_tdwg_list <- function(){
   base_url <- "https://raw.githubusercontent.com/tdwg/rs.tdwg.org/master/"
   suffixes <- c(
