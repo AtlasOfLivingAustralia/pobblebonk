@@ -16,13 +16,15 @@ build_tdwg_list <- function(){
                 # level 1: standards
                 # "standards/standards.csv", # current standard only - ignore for now
                 "standards-versions/standards-versions.csv", # key column: `standard`
-                "standards/standards-parts.csv", # links `standard` (level 1) to `part`
+                "standards-versions/standards-versions-parts.csv", # links `standard` (level 1) to `part`
                 # level 2: documents and vocabularies 
                 "vocabularies-versions/vocabularies-versions.csv", # `part` (above) == `vocabulary` (here)
+                "vocabularies-versions/vocabularies-versions-members.csv",
                 "docs-versions/docs-versions.csv", # unimplemented yet
                 # level 3: term lists
                 # "term-lists/term-lists.csv",
                 "term-lists-versions/term-lists-versions.csv", #  == `vocabulary` == `vann_preferredNamespaceUri` (here)
+                "term-lists-versions/term-lists-versions-members.csv",
                 # level 4: terms
                 "terms-versions/terms-versions.csv" 
                 )

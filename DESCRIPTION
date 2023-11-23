@@ -19,7 +19,8 @@ Imports:
     purrr,
     readr
 Suggests:
-    roxygen2
+    roxygen2,
+    testthat (>= 3.0.0)
 License: GNU GPL 3
 URL: https://github.com/AtlasOfLivingAustralia/tawnydragon
 BugReports: https://github.com/AtlasOfLivingAustralia/tawnydragon/issues
@@ -30,3 +31,4 @@ RoxygenNote: 7.2.3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 LazyData: true
+Config/testthat/edition: 3

@@ -4,17 +4,11 @@
 \alias{vocabularies}
 \title{look up vocabularies}
 \usage{
-vocabularies(.x, standard, version, ...)
+vocabularies(.x, ...)
 }
 \arguments{
 \item{.x}{a single-row \code{tibble} giving the required standard, created using
 \code{standard()}}
-
-\item{standard}{(optional) string giving the standard for which to display
-valid vocabularies. Not required if \code{.x} is given}
-
-\item{version}{(optional) string giving the version for which to display
-valid vocabularies. Not required if \code{.x} is given}
 
 \item{...}{arguments passed to \code{dplyr::filter}}
 }
