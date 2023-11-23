@@ -1,0 +1,31 @@
+Package: pobblebonk
+Type: Package
+Title: Biodiversity Data Standards from TDWG
+Version: 0.0-1
+Authors@R: 
+    c(person(given = "Martin",
+             family = "Westgate",
+             email = "martin.westgate@csiro.au",
+             role = c("aut", "cre")))
+Description: This package provides information on biodiversity standards built
+    and maintained by TDWG. It is experimental, designed to provide quick, 
+    easy access to information needed to build, validate or interpret 
+    Darwin Core archives. All of the data contained here is built by TDWG and 
+    is provided unmodified.
+Depends:
+    R (>= 4.1.0)
+Imports:
+    dplyr,
+    purrr,
+    readr
+Suggests:
+    roxygen2
+License: GNU GPL 3
+URL: https://github.com/AtlasOfLivingAustralia/pobblebonk
+BugReports: https://github.com/AtlasOfLivingAustralia/pobblebonk/issues
+Maintainer: Martin Westgate <martin.westgate@csiro.au>
+LazyLoad: yes
+VignetteBuilder: knitr
+RoxygenNote: 7.2.3
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
