@@ -6,10 +6,11 @@
 #' @importFrom dplyr summarize
 #' @export
 valid_standards<- function(){
-  tdwg$standards_versions |>
+  show_standards() |>
     filter(.data$standard_status == "recommended") |>
     group_by(standard) |>
     summarize(label, description)
+  # add standard number to this
 }
 
 #' @rdname valid
@@ -21,12 +22,12 @@ valid_standards<- function(){
 #' @export
 valid_versions <- function(standard){
   if(missing(standard)){
-    tdwg$standards_versions |>
+    show_standards() |>
       pull("version_issued") |>
       unique() |>
       sort(decreasing = TRUE)    
   }else{
-    tdwg$standards_versions |>
+    show_standards() |>
       filter(.data$standard == standard) |>
       pull("version_issued") |>
       unique() |>
@@ -38,7 +39,7 @@ valid_versions <- function(standard){
 #' @order 3
 #' @export
 valid_vocabularies <- function(){
-  tdwg$vocabularies_versions |>
+  show_vocabularies() |>
     filter(.data$vocabulary_status == "recommended") |>
     group_by(vocabulary) |>
     select(vocabulary, label, description)

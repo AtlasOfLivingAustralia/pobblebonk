@@ -23,7 +23,7 @@ build_tdwg_list <- function(){
                 "docs-versions/docs-versions.csv", # unimplemented yet
                 # level 3: term lists
                 # "term-lists/term-lists.csv",
-                "term-lists-versions/term-lists-versions.csv", #  == `vocabulary` == `vann_preferredNamespaceUri` (here)
+                "term-lists-versions/term-lists-versions.csv", #  == `vocabulary` (above) == `vann_preferredNamespaceUri` (here)
                 "term-lists-versions/term-lists-versions-members.csv",
                 # level 4: terms
                 "terms-versions/terms-versions.csv" 
