@@ -18,7 +18,8 @@ Imports:
     dplyr,
     glue,
     purrr,
-    readr
+    readr,
+    stringr
 Suggests:
     roxygen2,
     testthat (>= 3.0.0)

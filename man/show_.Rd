@@ -7,14 +7,43 @@
 \alias{show_terms}
 \title{Show raw data from TDWG}
 \usage{
-show_standards()
+show_standards(label = NULL, code = NULL, date = NULL, status = NULL)
 
-show_vocabularies()
+show_vocabularies(label = NULL, code = NULL, date = NULL, status = NULL)
 
-show_termlists()
+show_termlists(label = NULL, code = NULL, date = NULL, status = NULL)
 
-show_terms()
+show_terms(
+  label = NULL,
+  code = NULL,
+  date = NULL,
+  status = NULL,
+  type = NULL,
+  parent_class = NULL
+)
+}
+\arguments{
+\item{label}{(string) A complete, valid \code{label}, such as
+\code{"Audiovisual Core"}. Partial matches are not supported.}
+
+\item{code}{(integer) TDWG code for a given level in the hierarchy, such as
+\code{450} for Darwin Core standard.}
+
+\item{date}{(string) A valid date in \code{"YYYY-MM-DD"} format, used to
+signify the date that the level in question was adopted.}
+
+\item{status}{(string) Either \code{"recommended"}, \code{"superseded"} or (more
+rarely) \code{"deprecated"}.}
+
+\item{type}{(string) Either \code{"term"} or \code{"class"}, corresponding to the
+different types of information held in TDWG term lists}
+
+\item{parent_class}{(string) Some \code{terms} are nested within a parent \code{class}
+such as \code{Event} or \code{Occurrence}. Use this argument to select only those
+terms within a particular class.}
 }
 \description{
-low-level functions for calling internal data sourced from TDWG
+low-level functions for calling internal data sourced from TDWG. These
+functions are not exact exports of TDWG data structures. For piping, use
+\code{tdwg_} functions instead.
 }

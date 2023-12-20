@@ -1,15 +1,17 @@
+# NOTE: these are largely redundant given changes to `show_` - consider removing
+
 #' Look up which standards are supported
 #' @rdname valid
 #' @order 1
-#' @importFrom dplyr group_by
+#' @importFrom dplyr arrange
 #' @importFrom dplyr pull
 #' @importFrom dplyr summarize
 #' @export
 valid_standards<- function(){
   show_standards() |>
-    filter(.data$standard_status == "recommended") |>
-    group_by(standard) |>
-    summarize(label, description)
+    filter(.data$status == "recommended") |>
+    arrange(code) |>
+    summarize(code, label, description)
   # add standard number to this
 }
 
@@ -23,13 +25,13 @@ valid_standards<- function(){
 valid_versions <- function(standard){
   if(missing(standard)){
     show_standards() |>
-      pull("version_issued") |>
+      pull("date") |>
       unique() |>
       sort(decreasing = TRUE)    
   }else{
     show_standards() |>
-      filter(.data$standard == standard) |>
-      pull("version_issued") |>
+      filter(.data$code == standard) |>
+      pull("date") |>
       unique() |>
       sort(decreasing = TRUE)
   }
@@ -37,10 +39,13 @@ valid_versions <- function(standard){
 
 #' @rdname valid
 #' @order 3
+#' @importFrom dplyr arrange
+#' @importFrom dplyr filter
+#' @importFrom dplyr select
 #' @export
 valid_vocabularies <- function(){
   show_vocabularies() |>
-    filter(.data$vocabulary_status == "recommended") |>
-    group_by(vocabulary) |>
-    select(vocabulary, label, description)
+    filter(.data$status == "recommended") |>
+    arrange(code) |>
+    select(code, label, description)
 }
