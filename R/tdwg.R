@@ -3,7 +3,17 @@
 #' This creates an object of class `tdwg`, which can be piped to refine the 
 #' information returned at the end. Susequent functions amend the subsequent 
 #' query. To investigate complete tibbles without piping, use `show_` functions.
-#' @rdname tdwg 
+#' @details
+#' An unusual feature of this syntax is that requests propagate up the hierarchy,
+#' but not down. That is, calling `tdwg_standards()` (level 1) fills only the 
+#' `standards` slot, but calls to `tdwg_vocabularies()` (level 2) fills 
+#' `vocabularies` and `standards`. The interpretation of 'back-filled' slots
+#' is that they show all entries that contain at least one row from the selected
+#' level of the hierarchy. It does _not_ answer the question "Which single 
+#' standard contains all the terms I asked for?".
+#' @returns An object of class `tdwg`, which is a length-4 list containing
+#' the requested information; except `summarize()` which returns a `tibble`
+#' @name tdwg 
 #' @order 1
 #' @export
 tdwg <- function(){
@@ -22,13 +32,38 @@ tdwg <- function(){
 #'   str(x)
 #' }
 
+#' @rdname tdwg
+#' @order 6
+#' @export
+summarize.tdwg <- function(.data, ...){
+  if(is.null(.data$terms)){
+    inform(c("No `terms` calculated for the specified query",
+             i = "Did you call `tdwg_terms()` yet?"))
+  }else{
+    .data |>
+      pluck("terms") |>
+      select("parent_class", "code", "description", "status") |>
+      arrange("parent_class", "code")    
+  }
+}
+
+#' @rdname tdwg
+#' @order 7
+#' @export
+summarise.tdwg <- summarize.tdwg
+
 #' Internal function to update a `tdwg` object
 #' @importFrom purrr list_modify
+#' @importFrom purrr list_flatten
 #' @noRd
 #' @keywords Internal
 update_tdwg <- function(x, ...){
-  y <- list(...)
+  y <- list(...) # |> list_flatten()
+  # class(x) <- "list"
+  # x <- list_flatten(x)
   list_modify(x, !!!y)
+  # class(result) <- "tdwg"
+  # result
 }
 
 #' Check tibble given to `vocabularies` is a tibble with a single row
@@ -46,97 +81,66 @@ check_tdwg_object <- function(x){
 }
 
 #' @param .query An object of class `tdwg`, created with `tdwg()`
-#' @param label (string) A complete, valid `label`, such as 
-#' `"Audiovisual Core"`. Partial matches are not supported.
-#' @param code (string) TDWG code for a given level in the hierarchy, such as
-#' `450` for Darwin Core standard.
-#' @param date (string) A valid date in `"YYYY-MM-DD"` format, used to 
-#' signify the date that the level in question was adopted. Note that dates for
-#' `standards` correspond to accepted versions, whereas at other levels in the
-#' hierarchy they relate to the most recent update. Ergo it is possible to use
-#' different dates at different points in the hierarchy, though care should be
-#' taken when doing so.
-#' @param status (string) Either `"recommended"` or `"superseded"`. 
-#' @details
-#' The sequence of `tdwg` objects is `standards` > `vocabularies` > `term lists` 
-#' (> `classes`) > `terms`.
+#' @param ... Further arguments passed to `dplyr::filter()`
 #' @rdname tdwg
 #' @order 2
+#' @importFrom dplyr filter
+#' @importFrom rlang enquos
 #' @export
-tdwg_standards <- function(.query,
-                           label = "Darwin Core",
-                           code = NULL,
-                           date = NULL,
-                           status = "recommended"){
+tdwg_standards <- function(.query, ...){
   check_tdwg_object(.query)
-  update_tdwg(.query, 
-              standards = show_standards(label = label,
-                                         code = code,
-                                         date = date,
-                                         status = status))
+  if(length(enquos(...)) < 1){
+    df <- show_standards() |>
+      filter(code == "450", status == "recommended")
+  }else{
+    df <- show_standards() |>
+      filter(...)
+  }
+  update_tdwg(.query, standards = df)
 }
 
 #' @rdname tdwg
 #' @order 3
 #' @export
-tdwg_vocabularies <- function(.query, 
-                              label = NULL,
-                              code = "dwc",
-                              date = NULL,
-                              status = "recommended"){
+tdwg_vocabularies <- function(.query, ...){
   check_tdwg_object(.query)
   # if user hasn't supplied `standards`, build `vocabularies` from user-supplied 
   # information, then 'back-fill' `standards`
   if(is.null(.query$standards)){
-    df <- show_vocabularies(label = label,
-                            code = code,
-                            date = date,
-                            status = status)
+    df <- show_vocabularies() |>
+      filter(...)
     .query <- update_tdwg(.query, vocabularies = df)
     standards_df <- expand_vocabularies(.query)
     update_tdwg(.query, standards = standards_df)
   }else{
     # otherwise, filter `standards` first, then apply user-supplied information
     df <- filter_vocabularies(.query) |>
-      conditional_filter(label = label,
-                         code = code,
-                         date = date,
-                         status = status)
+      filter(...)
     update_tdwg(.query, vocabularies = df)
   }
 }
 
 #' @rdname tdwg
-#' @param type (string) Either `"term"` or `"class"`, corresponding to the 
-#' different types of information held in TDWG term lists
-#' @param parent_class (string) Some `terms` are nested within a parent `class`
-#' such as `Event` or `Occurrence`. Use this argument to select only those
-#' terms within a particular class.
 #' @order 4
 #' @export
-tdwg_termlists <- function(.query,
-                           label = NULL,
-                           code = NULL,
-                           date = NULL,
-                           status = NULL){
+tdwg_termlists <- function(.query, ...){
   check_tdwg_object(.query)
-  # if user hasn't supplied `standards`, build `vocabularies` from user-supplied 
-  # information, then 'back-fill' `standards`
-  if(is.null(.query$vocabularies)){
-    df <- show_termlists(label = label,
-                         code = code,
-                         date = date,
-                         status = status)
+  # check 'above' terms in hierarchy to look for relevant information
+  empty_check <- lapply(.query[1:2], is.null) |> unlist()
+  if(all(empty_check)){ # upward search
+    df <- show_termlists() |>
+      filter(...)
     .query <- update_tdwg(.query, termlists = df)
-    vocabularies_df <- expand_termlists(.query) # TODO: write this function
-    update_tdwg(.query, vocabularies = vocabularies_df)
-  }else{
-    # otherwise, filter `vocabularies` first, then apply user-supplied information
+    expand_termlists(.query) # note: returns an updated `.query`, *not* a `tibble`
+  }else{ # downward search
+    search_from <- names(.query)[max(which(!empty_check))]
+    .query <- switch(search_from, 
+                     "standards" = {.query |>
+                         tdwg_vocabularies() |>
+                         tdwg_termlists() },
+                     .query)
     df <- filter_termlists(.query) |>
-      conditional_filter(label = label,
-                         code = code,
-                         date = date,
-                         status = status)
+      filter(...)
     update_tdwg(.query, termlists = df)
   }
 }
@@ -144,35 +148,26 @@ tdwg_termlists <- function(.query,
 #' @rdname tdwg
 #' @order 5
 #' @export
-tdwg_terms <- function(.query,
-                       label = NULL,
-                       code = NULL,
-                       date = NULL,
-                       status = NULL,
-                       type = "term",
-                       parent_class = NULL){
+tdwg_terms <- function(.query, ...){
   check_tdwg_object(.query)
-  # if user hasn't supplied `standards`, build `vocabularies` from user-supplied 
-  # information, then 'back-fill' `standards`
-  if(is.null(.query$vocabularies)){
-    df <- show_terms(label = label,
-                     code = code,
-                     date = date,
-                     status = status,
-                     type = type,
-                     parent_class = parent_class)
-    .query <- update_tdwg(.query, termlists = df)
-    termlists_df <- expand_termlists(.query) # TODO: write this function
-    update_tdwg(.query, termlists = termlists_df)
+  # check 'above' terms in hierarchy to look for relevant information
+  empty_check <- lapply(.query[1:3], is.null) |> unlist()
+  if(all(empty_check)){
+    df <- show_terms() |>
+      filter(...)
+    .query <- update_tdwg(.query, terms = df)
+    expand_terms(.query)
   }else{
-    # otherwise, filter `terms` first, then apply user-supplied information
+    search_from <- names(.query)[max(which(!empty_check))]
+    .query <- switch(search_from, 
+                     "standards" = {.query |>
+                                      tdwg_vocabularies() |>
+                                      tdwg_termlists() },
+                     "vocabularies" = {.query |>
+                                        tdwg_termlists()},
+                     .query)
     df <- filter_terms(.query) |>
-      conditional_filter(label = label,
-                         code = code,
-                         date = date,
-                         status = status,
-                         type = type,
-                         parent_class = parent_class)
+      filter(...)
     update_tdwg(.query, terms = df)
   }
 }

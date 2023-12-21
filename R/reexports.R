@@ -1,7 +1,7 @@
-#' @importFrom dplyr collect
+#' @importFrom dplyr summarize
 #' @export
-dplyr::collect
+dplyr::summarize
 
-#' @importFrom stats terms
+#' @importFrom dplyr summarise
 #' @export
-stats::terms
+dplyr::summarise

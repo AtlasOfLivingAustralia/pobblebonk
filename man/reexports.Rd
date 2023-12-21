@@ -3,8 +3,8 @@
 \docType{import}
 \name{reexports}
 \alias{reexports}
-\alias{collect}
-\alias{terms}
+\alias{summarize}
+\alias{summarise}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -12,8 +12,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{dplyr}{\code{\link[dplyr:compute]{collect}}}
-
-  \item{stats}{\code{\link[stats]{terms}}}
+  \item{dplyr}{\code{\link[dplyr]{summarise}}, \code{\link[dplyr:summarise]{summarize}}}
 }}
 

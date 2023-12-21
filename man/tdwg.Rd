@@ -6,62 +6,32 @@
 \alias{tdwg_vocabularies}
 \alias{tdwg_termlists}
 \alias{tdwg_terms}
+\alias{summarize.tdwg}
+\alias{summarise.tdwg}
 \title{Piped syntax for navigating TDWG data}
 \usage{
 tdwg()
 
-tdwg_standards(
-  .query,
-  label = "Darwin Core",
-  code = NULL,
-  date = NULL,
-  status = "recommended"
-)
+tdwg_standards(.query, ...)
 
-tdwg_vocabularies(
-  .query,
-  label = NULL,
-  code = "dwc",
-  date = NULL,
-  status = "recommended"
-)
+tdwg_vocabularies(.query, ...)
 
-tdwg_termlists(.query, label = NULL, code = NULL, date = NULL, status = NULL)
+tdwg_termlists(.query, ...)
 
-tdwg_terms(
-  .query,
-  label = NULL,
-  code = NULL,
-  date = NULL,
-  status = NULL,
-  type = "term",
-  parent_class = NULL
-)
+tdwg_terms(.query, ...)
+
+\method{summarize}{tdwg}(.data, ...)
+
+\method{summarise}{tdwg}(.data, ...)
 }
 \arguments{
 \item{.query}{An object of class \code{tdwg}, created with \code{tdwg()}}
 
-\item{label}{(string) A complete, valid \code{label}, such as
-\code{"Audiovisual Core"}. Partial matches are not supported.}
-
-\item{code}{(string) TDWG code for a given level in the hierarchy, such as
-\code{450} for Darwin Core standard.}
-
-\item{date}{(string) A valid date in \code{"YYYY-MM-DD"} format, used to
-signify the date that the level in question was adopted. Note that dates for
-\code{standards} correspond to accepted versions, whereas at other levels in the
-hierarchy they relate to the most recent update. Ergo it is possible to use
-different dates at different points in the hierarchy, though care should be
-taken when doing so.}
-
-\item{status}{(string) Either \code{"recommended"} or \code{"superseded"}.}
-
-\item{type}{(string) Either \code{"term"} or \code{"class"}, corresponding to the
-different types of information held in TDWG term lists}
-
-\item{parent_class}{(string) Some \code{terms} are nested within a parent \code{class}
-such as \code{Event} or \code{Occurrence}. Use this argument to select only those
-terms within a particular class.}
+\item{...}{Further arguments passed to \code{dplyr::filter()}}
+}
+\value{
+An object of class \code{tdwg}, which is a length-4 list containing
+the requested information; except \code{summarize()} which returns a \code{tibble}
 }
 \description{
 This creates an object of class \code{tdwg}, which can be piped to refine the
@@ -69,6 +39,11 @@ information returned at the end. Susequent functions amend the subsequent
 query. To investigate complete tibbles without piping, use \code{show_} functions.
 }
 \details{
-The sequence of \code{tdwg} objects is \code{standards} > \code{vocabularies} > \verb{term lists}
-(> \code{classes}) > \code{terms}.
+An unusual feature of this syntax is that requests propagate up the hierarchy,
+but not down. That is, calling \code{tdwg_standards()} (level 1) fills only the
+\code{standards} slot, but calls to \code{tdwg_vocabularies()} (level 2) fills
+\code{vocabularies} and \code{standards}. The interpretation of 'back-filled' slots
+is that they show all entries that contain at least one row from the selected
+level of the hierarchy. It does \emph{not} answer the question "Which single
+standard contains all the terms I asked for?".
 }

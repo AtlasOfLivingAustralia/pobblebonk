@@ -14,15 +14,14 @@ build_tdwg_list <- function(){
   base_url <- "https://raw.githubusercontent.com/tdwg/rs.tdwg.org/master/"
   suffixes <- c(
                 # level 1: standards
-                "standards-versions/standards-versions.csv", # key column: `standard`
-                "standards-versions/standards-versions-parts.csv", # links `standard` (level 1) to `part`
+                "standards-versions/standards-versions.csv",
+                "standards-versions/standards-versions-parts.csv",
                 # level 2: documents and vocabularies 
-                "vocabularies-versions/vocabularies-versions.csv", # `part` (above) == `vocabulary` (here)
+                "vocabularies-versions/vocabularies-versions.csv",
                 "vocabularies-versions/vocabularies-versions-members.csv",
                 "docs-versions/docs-versions.csv", # unimplemented yet
                 # level 3: term lists
-                # "term-lists/term-lists.csv",
-                "term-lists-versions/term-lists-versions.csv", #  == `vocabulary` (above) == `vann_preferredNamespaceUri` (here)
+                "term-lists-versions/term-lists-versions.csv",
                 "term-lists-versions/term-lists-versions-members.csv",
                 # level 4: terms
                 "terms-versions/terms-versions.csv" 
@@ -31,15 +30,21 @@ build_tdwg_list <- function(){
   result <- map(.x = urls, 
                 .f = function(a){read_csv(a, show_col_types = FALSE)},
                 .progress = TRUE)
-  names(result) <- basename(urls) |>
-                   gsub("-", "_", x = _) |>
-                   sub(".csv$", "", x = _)
-  
-  # tidying
-  result$standards_versions <- tidy_standards(result$standards_versions)
-  result$vocabularies_versions <- tidy_vocabularies(result$vocabularies_versions)
-  result$term_lists_versions <- tidy_termlists(result$term_lists_versions)
-  result$terms_versions <- tidy_terms(result$terms_versions)
+  names(result) <- c("standards",
+                     "standards_vocabularies_keys",
+                     "vocabularies",
+                     "vocabularies_termlists_keys",
+                     "documents",
+                     "termlists",
+                     "termlists_terms_keys",
+                     "terms")
+  result$standards <- tidy_standards(result$standards)
+  names(result$standards_vocabularies_keys) <- c("key_standards", "key_vocabularies")
+  result$vocabularies <- tidy_vocabularies(result$vocabularies)
+  names(result$vocabularies_termlists_keys) <- c("key_vocabularies", "key_termlists")
+  result$termlists <- tidy_termlists(result$termlists)
+  names(result$termlists_terms_keys) <- c("key_termlists", "key_terms")
+  result$terms <- tidy_terms(result$terms)
   result
 }
 
@@ -60,10 +65,10 @@ tidy_standards <- function(df){
   df |>
     mutate(code = code_field,
            date = version_issued,
-           status = standard_status) |>
-    select(code, date, label, description, status) |>
-    arrange(desc(date)) |>
-    mutate(id = seq_len(nrow(df)), .before = code)
+           status = standard_status,
+           key = version) |>
+    select(code, date, label, description, status, key) |>
+    arrange(desc(date))
 }
 
 #' Internal function to re-organise `vocabularies`
@@ -82,10 +87,10 @@ tidy_vocabularies <- function(df){
   df |>
     mutate(code = code_field,
            date = version_issued,
-           status = vocabulary_status) |>
-    select(code, date, label, description, status) |>
-    arrange(desc(date)) |>
-    mutate(id = seq_len(nrow(df)), .before = code)
+           status = vocabulary_status, 
+           key = version) |>
+    select(code, date, label, description, status, key) |>
+    arrange(desc(date))
 }
 
 #' Internal function to re-organise `termlists`
@@ -101,10 +106,10 @@ tidy_termlists <- function(df){
     mutate(code = sub("/$", "", x = list_localName),
            date = version_modified,
            status = dplyr::case_when(!is.na(list_deprecated) ~ "deprecated",
-                                     .default = status)) |>
-    select(code, date, label, description, status) |>
-    arrange(desc(date)) |>
-    mutate(id = seq_len(nrow(df)), .before = code)
+                                     .default = status),
+           key = version) |>
+    select(code, date, label, description, status, key) |>
+    arrange(desc(date))
 }
 
 #' Internal function to re-organise `terms`
@@ -120,17 +125,28 @@ tidy_terms <- function(df){
   class_vector <- str_extract(df$tdwgutility_organizedInClass, 
                               "[:alpha:]+$")
   identified_classes <- unique(class_vector[!is.na(class_vector)])  
-  x <- df |>
+  type_vector <- case_when(
+    df$rdf_type == "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property" ~ "term",
+    df$rdf_type == "http://www.w3.org/2000/01/rdf-schema#Class" ~ "class",
+    df$rdf_type == "http://purl.org/dc/dcam/VocabularyEncodingScheme" ~ "vocabulary_scheme")
+  # type_vector[df$term_localName %in% identified_classes] <- "parent_class"
+  df |>
     mutate(code = term_localName,
            date = version_issued,
            status = version_status,
            description = rdfs_comment,
-           type = case_when(df$rdf_type == "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property" ~ "term",
-                            df$rdf_type == "http://www.w3.org/2000/01/rdf-schema#Class" ~ "class"),
-           parent_class = class_vector) |>
-    filter((term_localName %in% identified_classes)) |>
-    select(code, date, parent_class, label, description, examples, type, status) |>
+           type = type_vector,
+           parent_class = class_vector,
+           key = version) |>
+    # filter(!(term_localName %in% identified_classes)) |>
+    select(code, 
+           date, 
+           parent_class, 
+           label, 
+           description, 
+           examples, 
+           type, 
+           status,
+           key) |>
     arrange(desc(date), parent_class, code)
-  x |>
-    mutate(id = seq_len(nrow(x)), .before = code)
 }

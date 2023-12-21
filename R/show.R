@@ -1,81 +1,52 @@
-#' Show raw data from TDWG
+#' Show TDWG data
 #' 
-#' low-level functions for calling internal data sourced from TDWG. These 
-#' functions are not exact exports of TDWG data structures. For piping, use
-#' `tdwg_` functions instead.
-#' @rdname show_
-#' @param label (string) A complete, valid `label`, such as 
-#' `"Audiovisual Core"`. Partial matches are not supported.
-#' @param code (integer) TDWG code for a given level in the hierarchy, such as
-#' `450` for Darwin Core standard.
-#' @param date (string) A valid date in `"YYYY-MM-DD"` format, used to 
-#' signify the date that the level in question was adopted.
-#' @param status (string) Either `"recommended"`, `"superseded"` or (more 
-#' rarely) `"deprecated"`.
+#' Low-level functions for calling internal data sourced from TDWG. These 
+#' functions are not full exports of TDWG data structures; some columns have 
+#' been removed, and others have been renamed. For piping, use `tdwg_` functions 
+#' instead.
+#' @name show_
+#' @format
+#' All `tibble`s returned by `show_` functions have the following columns:
+#' \describe{
+#'   \item{code}{Identifier for the type of data within the column; i.e. 
+#'               for `show_standards()` this is the unique code for that 
+#'               standard.}
+#'  \item{date}{Release date for selected object in `"YYYY-MM-DD"` format. 
+#'              For standards, this is effectively synonymous with a version of 
+#'              the standard; but this is not the case at lower levels of the 
+#'              hierarchy.}
+#'  \item{label}{Human-readable tag for this datum.}
+#'  \item{description}{A detailed overview of the function of this datum.}
+#'  \item{status}{`"recommended"`, `"superseded"` or `"deprecated"`.}
+#'  \item{key}{A unique identifier used to navigate the information hierarchy,
+#'            formed as a URL.}
+#' }
+#' 
+#' In addition, `terms` data have the following additional columns:
+#' \describe{
+#'   \item{type}{TDWG terms contain descriptions of the terms themselves 
+#'               (type = `terms`), but also the classes that are related to 
+#'               those terms (type = `class`). Note that terms can be nested
+#'               within classes or vice versa.}
+#'   \item{parent_class}{If a `term` is nested within a `class`, the parent 
+#'                      class is listed here. Useful for grouping like terms.}
+#' }
 #' @order 1
+#' @importFrom dplyr filter
 #' @export
-show_standards <- function(label = NULL, # Note: might be nicer to use `missing()`
-                           code = NULL,  # rather than `NULL`
-                           date = NULL,
-                           status = NULL
-                           ){
-  tdwg_data$standards_versions |>
-    conditional_filter(label = label,
-                       code = code,
-                       date = date,
-                       status = status)
-}
+show_standards <- function(){tdwg_data$standards}
 
 #' @rdname show_
 #' @order 2
 #' @export
-show_vocabularies <- function(label = NULL,
-                              code = NULL,
-                              date = NULL,
-                              status = NULL
-                              ){
-  tdwg_data$vocabularies_versions  |>
-    conditional_filter(label = label,
-                       code = code,
-                       date = date,
-                       status = status)
-}
+show_vocabularies <- function(){tdwg_data$vocabularies}
 
 #' @rdname show_
 #' @order 3
 #' @export
-show_termlists <- function(label = NULL,
-                           code = NULL,
-                           date = NULL,
-                           status = NULL
-){
-  tdwg_data$term_lists_versions  |>
-    conditional_filter(label = label,
-                       code = code,
-                       date = date,
-                       status = status)
-}
+show_termlists <- function(){tdwg_data$termlists}
 
 #' @rdname show_
-#' @param type (string) Either `"term"` or `"class"`, corresponding to the 
-#' different types of information held in TDWG term lists
-#' @param parent_class (string) Some `terms` are nested within a parent `class`
-#' such as `Event` or `Occurrence`. Use this argument to select only those
-#' terms within a particular class.
 #' @order 4
 #' @export
-show_terms <- function(label = NULL,
-                       code = NULL,
-                       date = NULL,
-                       status = NULL,
-                       type = NULL,
-                       parent_class = NULL
-){
-  tdwg_data$terms_versions  |>
-    conditional_filter(label = label,
-                       code = code,
-                       date = date,
-                       status = status,
-                       type = type,
-                       parent_class = parent_class)
-}
+show_terms <- function(){tdwg_data$terms}
