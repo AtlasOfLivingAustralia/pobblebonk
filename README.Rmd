@@ -29,3 +29,36 @@ To install from GitHub:
 install.packages("remotes")
 remotes::install_github("AtlasOfLivingAustralia/tawnydragon")
 ```
+
+You can use `tawnydragon` to show data from the TDWG information hierarchy,
+which starts with `standards` and moves down through `vocabularies`, `termlists`
+and finally `terms`. These functions have the prefix `show_`. To show available 
+standards (including past versions), for example, you use:
+```{r}
+library(tawnydragon)
+show_standards()
+```
+
+All functions in `tawnydragon`, and all `show_` functions return information in
+reverse chronological order (i.e. most recent first). For obvious reasons, 
+these tibbles get larger the lower down in the hierarchy you go.
+
+```{r}
+show_terms()
+```
+
+Of course, looking at all past and present terms for any standard is not 
+especially useful; It makes more sense to choose a single standard and version,
+and show only those terms within it. To pipe these tibbles together in the 
+correct order, you start with a call to `tdwg()` then pipe your levels together
+with `tdwg_` functions. All functions accept arguments to pass to 
+`dplyr::filter()`. If you end the pipe with `summarize()`, only the `terms`
+slot of the `tdwg` object will be returned.
+
+```{r}
+tdwg() |>
+  tdwg_standards(label == "Darwin Core",
+                 status == "recommended") |>
+  tdwg_terms(type == "term") |>
+  summarize()
+```
