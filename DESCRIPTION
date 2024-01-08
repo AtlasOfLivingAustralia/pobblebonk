@@ -15,12 +15,16 @@ Description: This package provides information on biodiversity standards built
 Depends:
     R (>= 4.1.0)
 Imports:
+    bslib,
     dplyr,
     glue,
+    htmltools,
     purrr,
     readr,
     rlang,
-    stringr
+    shiny,
+    stringr,
+    tibble
 Suggests:
     roxygen2,
     testthat (>= 3.0.0)
